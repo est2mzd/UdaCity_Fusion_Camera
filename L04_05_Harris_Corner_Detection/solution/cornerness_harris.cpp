@@ -59,6 +59,7 @@ void cornernessHarris()
                     if (kptOverlap > maxOverlap)
                     {
                         bOverlap = true;
+                        // Select Next newKeyPoint
                         if (newKeyPoint.response > (*it).response)
                         {                      // if overlap is >t AND response is higher for new kpt
                             *it = newKeyPoint; // replace old key point with new one

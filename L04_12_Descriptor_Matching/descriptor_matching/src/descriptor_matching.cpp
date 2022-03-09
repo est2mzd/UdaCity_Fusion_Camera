@@ -60,6 +60,9 @@ void matchDescriptors(cv::Mat &imgSource, cv::Mat &imgRef, vector<cv::KeyPoint> 
 
     string windowName = "Matching keypoints between two camera images (best 50)";
     cv::namedWindow(windowName, 7);
+    //cv::namedWindow(windowName, cv::WINDOW_NORMAL);
+    //cv::namedWindow(windowName, cv::WINDOW_FREERATIO);
+    //cv::namedWindow(windowName, cv::WINDOW_AUTOSIZE);
     cv::imshow(windowName, matchImg);
     cv::waitKey(0);
 }

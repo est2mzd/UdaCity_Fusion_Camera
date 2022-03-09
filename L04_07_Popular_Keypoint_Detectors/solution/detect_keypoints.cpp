@@ -47,8 +47,8 @@ void detKeypoints1()
     imshow(windowName, visImage);
 
     // STUDENT CODE
-    int threshold = 30;                                                              // difference between intensity of the central pixel and pixels of a circle around this pixel
-    bool bNMS = true;                                                                // perform non-maxima suppression on keypoints
+    int threshold = 30; // difference between intensity of the central pixel and pixels of a circle around this pixel
+    bool bNMS = true;   // perform non-maxima suppression on keypoints
     cv::FastFeatureDetector::DetectorType type = cv::FastFeatureDetector::TYPE_9_16; // TYPE_9_16, TYPE_7_12, TYPE_5_8
     cv::Ptr<cv::FeatureDetector> detector = cv::FastFeatureDetector::create(threshold, bNMS, type);
 
