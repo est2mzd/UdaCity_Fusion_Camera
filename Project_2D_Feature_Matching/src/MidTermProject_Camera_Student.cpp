@@ -29,16 +29,16 @@ int main(int argc, const char *argv[])
 
     // camera
     string imgBasePath = dataPath + "images/";
-    string imgPrefix = "KITTI/2011_09_26/image_00/data/000000"; // left camera, color
+    string imgPrefix   = "KITTI/2011_09_26/image_00/data/000000"; // left camera, color
     string imgFileType = ".png";
-    int imgStartIndex = 0; // first file index to load (assumes Lidar and camera names have identical naming convention)
-    int imgEndIndex = 9;   // last file index to load
-    int imgFillWidth = 4;  // no. of digits which make up the file index (e.g. img-0001.png)
+    int imgStartIndex  = 0; // first file index to load (assumes Lidar and camera names have identical naming convention)
+    int imgEndIndex    = 9;   // last file index to load
+    int imgFillWidth   = 4;  // no. of digits which make up the file index (e.g. img-0001.png)
 
     // misc
-    int dataBufferSize = 2;       // no. of images which are held in memory (ring buffer) at the same time
+    int dataBufferSize = 4;       // no. of images which are held in memory (ring buffer) at the same time
     vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
-    bool bVis = false;            // visualize results
+    bool bVis = true;            // visualize results
 
     /* MAIN LOOP OVER ALL IMAGES */
 
@@ -49,7 +49,8 @@ int main(int argc, const char *argv[])
         // assemble filenames for current index
         ostringstream imgNumber;
         imgNumber << setfill('0') << setw(imgFillWidth) << imgStartIndex + imgIndex;
-        string imgFullFilename = imgBasePath + imgPrefix + imgNumber.str() + imgFileType;
+        string imgFileName     = imgPrefix + imgNumber.str() + imgFileType;
+        string imgFullFilename = imgBasePath + imgFileName;
 
         // load image from file and convert to grayscale
         cv::Mat img, imgGray;
@@ -62,20 +63,32 @@ int main(int argc, const char *argv[])
         // push image into data frame buffer
         DataFrame frame;
         frame.cameraImg = imgGray;
-        dataBuffer.push_back(frame);
+        //dataBuffer.push_back(frame);
+        if(dataBuffer.size() < dataBufferSize)
+        {
+            dataBuffer.push_back(frame);
+        }
+        else
+        {
+            dataBuffer[imgIndex % dataBufferSize] = frame;
+        }
+
 
         //// EOF STUDENT ASSIGNMENT
-        cout << "#1 : LOAD IMAGE INTO BUFFER done" << endl;
+        cout << "=============================================" << endl;
+        cout << "#1 : LOAD IMAGE INTO BUFFER done:" <<  imgFileName << endl;
 
         /* DETECT IMAGE KEYPOINTS */
 
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
-        string detectorType = "SHITOMASI";
 
         //// STUDENT ASSIGNMENT
         //// TASK MP.2 -> add the following keypoint detectors in file matching2D.cpp and enable string-based selection based on detectorType
         //// -> HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
+
+        std::vector<string> detectorTypes = {"SHITOMASI", "HARRIS", "FAST", "BRISK", "ORB", "AKAZE", "SIFT"};
+        string detectorType = detectorTypes[2]; // 0 to 6;
 
         if (detectorType.compare("SHITOMASI") == 0)
         {
@@ -83,8 +96,9 @@ int main(int argc, const char *argv[])
         }
         else
         {
-            //...
+            detKeypointsModern(keypoints, imgGray, detectorType, bVis);
         }
+        cout << "End of Task MP. 2" << endl;
         //// EOF STUDENT ASSIGNMENT
 
         //// STUDENT ASSIGNMENT
@@ -95,9 +109,18 @@ int main(int argc, const char *argv[])
         cv::Rect vehicleRect(535, 180, 180, 150);
         if (bFocusOnVehicle)
         {
-            // ...
+            cout << "before : keypoints size = " << keypoints.size() << endl;
+            for(auto it = keypoints.begin(); it != keypoints.end(); ++it)
+            {
+                if(!vehicleRect.contains(it->pt))
+                {
+                    keypoints.erase(it);
+                    it--;
+                }
+            }
+            cout << "after  : keypoints size = " << keypoints.size() << endl;
         }
-
+        cout << "End of Task MP. 3" << endl;
         //// EOF STUDENT ASSIGNMENT
 
         // optional : limit number of keypoints (helpful for debugging and learning)
@@ -125,7 +148,19 @@ int main(int argc, const char *argv[])
         //// -> BRIEF, ORB, FREAK, AKAZE, SIFT
 
         cv::Mat descriptors;
-        string descriptorType = "BRISK"; // BRIEF, ORB, FREAK, AKAZE, SIFT
+        std::vector<string> descriptorTypes = {"BRISK", "BRIEF", "ORB", "FREAK", "AKAZE", "SIFT", "SURF"};
+        string descriptorType = descriptorTypes[4]; // BRISK, BRIEF, ORB, FREAK, AKAZE, SIFT
+
+        // error check
+        // Some descriptors like KAZE and AKAZE only work with their own keypoints.
+        // https://github.com/kyamagu/mexopencv/issues/351
+        if ((detectorType != "AKAZE") && (descriptorType == "AKAZE"))
+        {
+            descriptorType = "BRIEF";
+        }
+        // Probably, SIFT should only be used as both extractor/descriptor at the same time.
+
+        //
         descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptorType);
         //// EOF STUDENT ASSIGNMENT
 
@@ -140,7 +175,7 @@ int main(int argc, const char *argv[])
             /* MATCH KEYPOINT DESCRIPTORS */
 
             vector<cv::DMatch> matches;
-            string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
+            string matcherType = "MAT_FLANN";        // MAT_BF, MAT_FLANN
             string descriptorType = "DES_BINARY"; // DES_BINARY, DES_HOG
             string selectorType = "SEL_NN";       // SEL_NN, SEL_KNN
 
@@ -172,7 +207,16 @@ int main(int argc, const char *argv[])
 
                 string windowName = "Matching keypoints between two camera images";
                 cv::namedWindow(windowName, 7);
+                cv::resize(matchImg, matchImg, cv::Size(), 0.7,0.7);
                 cv::imshow(windowName, matchImg);
+                //
+                bool bSaveImg = false;
+                if(bSaveImg)
+                {
+                    string filePathOut = "../results/" + imgNumber.str() + ".png";
+                    cv::imwrite(filePathOut, matchImg);
+                }
+                //
                 cout << "Press key to continue to next image" << endl;
                 cv::waitKey(0); // wait for key to be pressed
             }
@@ -180,6 +224,10 @@ int main(int argc, const char *argv[])
         }
 
     } // eof loop over all images
+
+
+    cout << "----< Result Check >----" << endl;
+    cout << "dataBuffer.size() = " << dataBuffer.size() << endl;
 
     return 0;
 }
