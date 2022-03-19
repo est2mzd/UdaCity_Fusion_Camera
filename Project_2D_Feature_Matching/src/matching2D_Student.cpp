@@ -161,7 +161,7 @@ void visualizeResults(cv::Mat& img, std::string window_name, vector<cv::KeyPoint
 {
     cv::Mat visImage = img.clone();
     cv::drawKeypoints(img, keypoints, visImage, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-    string windowName = "Shi-Tomasi Corner Detector Results";
+    string windowName = window_name;
     cv::namedWindow(windowName, 6);
     imshow(windowName, visImage);
     cv::waitKey(0);
