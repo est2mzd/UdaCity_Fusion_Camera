@@ -27,4 +27,51 @@ void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource, std::vector<cv::Key
                       std::vector<cv::DMatch> &matches, std::string descriptorType, std::string matcherType, std::string selectorType);
 void visualizeResults(cv::Mat& img, std::string window_name, std::vector<cv::KeyPoint> keypoints);
 
+//----------------------------------------------------------------------//
+// https://www.modernmetalproduction.com/simple-circular-buffer-in-c/
+template <class T>
+class RingBuffer
+{
+public:
+    RingBuffer(unsigned int buffer_size); // Constructor
+    T Read();
+    void Write(T input);
+
+private:
+    std::vector<T> Buffer;
+    unsigned int ReadIndex;
+    unsigned int WriteIndex;
+};
+
+template <class T>
+RingBuffer<T>::RingBuffer(unsigned int buffer_size): Buffer(buffer_size) // Constructor
+{
+    ReadIndex  = 0;
+    WriteIndex = 0; //buffer_size-1;
+}
+
+template <class T>
+void RingBuffer<T>::Write(T input)
+{
+    Buffer[WriteIndex] = input;
+    WriteIndex +=1;
+    if(WriteIndex >= Buffer.size())
+    {
+        WriteIndex = 0;
+    }
+}
+
+template <class T>
+T RingBuffer<T>::Read()
+{
+    T output = Buffer[ReadIndex];
+    ReadIndex +=1;
+    if(ReadIndex >= Buffer.size())
+    {
+        ReadIndex = 0;
+    }
+    return output;
+}
+//----------------------------------------------------------------------//
+
 #endif /* matching2D_hpp */

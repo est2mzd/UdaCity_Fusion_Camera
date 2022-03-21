@@ -18,6 +18,11 @@
 
 using namespace std;
 
+
+
+
+//----------------------------------------------------------------------//
+
 /* MAIN PROGRAM */
 int main(int argc, const char *argv[])
 {
@@ -63,16 +68,11 @@ int main(int argc, const char *argv[])
         // push image into data frame buffer
         DataFrame frame;
         frame.cameraImg = imgGray;
-        //dataBuffer.push_back(frame);
-        if(dataBuffer.size() < dataBufferSize)
+        dataBuffer.push_back(frame);
+        if(dataBuffer.size() > dataBufferSize)
         {
-            dataBuffer.push_back(frame);
+            dataBuffer.erase(dataBuffer.begin());
         }
-        else
-        {
-            dataBuffer[imgIndex % dataBufferSize] = frame;
-        }
-
 
         //// EOF STUDENT ASSIGNMENT
         cout << "=============================================" << endl;
@@ -88,6 +88,7 @@ int main(int argc, const char *argv[])
         //// -> HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
 
         std::vector<string> detectorTypes = {"SHITOMASI", "HARRIS", "FAST", "BRISK", "ORB", "AKAZE", "SIFT"};
+        //std::vector<string> descriptorTypes = {"BRIEF", "BRISK", "ORB", "AKAZE", "SIFT", "FREAK", "SURF"};
         string detectorType = detectorTypes[2]; // 0 to 6;
 
         if (detectorType.compare("SHITOMASI") == 0)
@@ -210,7 +211,7 @@ int main(int argc, const char *argv[])
                 cv::resize(matchImg, matchImg, cv::Size(), 0.7,0.7);
                 cv::imshow(windowName, matchImg);
                 //
-                bool bSaveImg = false;
+                bool bSaveImg = true;
                 if(bSaveImg)
                 {
                     string filePathOut = "../results/" + imgNumber.str() + ".png";
