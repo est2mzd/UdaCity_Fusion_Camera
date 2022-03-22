@@ -34,29 +34,33 @@ class RingBuffer
 {
 public:
     RingBuffer(unsigned int buffer_size); // Constructor
-    T ReadLast();
-    T Read2ndLast();
+    T* ReadLast();
+    T* Read2ndLast();
     void Write(T input);
+    int size();
     //void Print();
 private:
     std::vector<T> Buffer;
     unsigned int ReadIndex;
     unsigned int WriteIndex;
+    unsigned int WriteDataNum;
     void UpdateReadIndex();
 };
 
 template <class T>
 RingBuffer<T>::RingBuffer(unsigned int buffer_size): Buffer(buffer_size) // Constructor
 {
-    ReadIndex  = 0;
-    WriteIndex = 0;
+    ReadIndex    = buffer_size-1;
+    WriteIndex   = 0;
+    WriteDataNum = 0;
 }
 
 template <class T>
 void RingBuffer<T>::Write(T input)
 {
     Buffer[WriteIndex] = input;
-    WriteIndex +=1;
+    WriteIndex   +=1;
+    WriteDataNum +=1;
     if(WriteIndex >= Buffer.size())
     {
         WriteIndex = 0;
@@ -65,24 +69,24 @@ void RingBuffer<T>::Write(T input)
 }
 
 template <class T>
-T RingBuffer<T>::ReadLast()
+T* RingBuffer<T>::ReadLast()
 {
-    T output = Buffer[ReadIndex];
+    T* output = &Buffer[ReadIndex];
     return output;
 }
 
 template <class T>
-T RingBuffer<T>::Read2ndLast()
+T* RingBuffer<T>::Read2ndLast()
 {
-    T output;
+    T* output;
 
     if(ReadIndex == 0)
     {
-        output = Buffer[Buffer.size()-1];
+        output = &Buffer[Buffer.size()-1];
     }
     else
     {
-        output = Buffer[ReadIndex-1];
+        output = &Buffer[ReadIndex-1];
     }
 
     return output;
@@ -98,6 +102,19 @@ void RingBuffer<T>::UpdateReadIndex()
     }
 }
 
+template <class T>
+int RingBuffer<T>::size()
+{
+    if(WriteDataNum >= Buffer.size())
+    {
+        return Buffer.size();
+    }
+    else
+    {
+        return WriteDataNum;
+    }
+}
+
 /*
 template <class T>
 void RingBuffer<T>::Print()
@@ -107,8 +124,9 @@ void RingBuffer<T>::Print()
     {
         std::cout << "Buffer[" << i << "] = " << Buffer[i] << std::endl;
     }
-    std::cout << "Read2ndLast = " << Read2ndLast() << std::endl;
-    std::cout << "ReadLast    = " << ReadLast()    << std::endl;
+    std::cout << "ReadIndex   = " << ReadIndex      << std::endl;
+    std::cout << "Read2ndLast = " << *Read2ndLast() << std::endl;
+    std::cout << "ReadLast    = " << *ReadLast()    << std::endl;
 }
 */
 

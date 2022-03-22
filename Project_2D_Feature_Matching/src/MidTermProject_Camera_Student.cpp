@@ -42,10 +42,11 @@ int main(int argc, const char *argv[])
 
     // misc
     int dataBufferSize = 2;       // no. of images which are held in memory (ring buffer) at the same time
-    vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
+    //vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
+    RingBuffer<DataFrame> dataBuffer(dataBufferSize); // list of data frames which are held in memory at the same time
     bool bVis = true;            // visualize results
 
-    RingBuffer<std::string> MyBuffer(4);
+    //RingBuffer<std::string> MyBuffer(4);
     /* MAIN LOOP OVER ALL IMAGES */
 
     for (size_t imgIndex = 0; imgIndex <= imgEndIndex - imgStartIndex; imgIndex++)
@@ -69,13 +70,9 @@ int main(int argc, const char *argv[])
         // push image into data frame buffer
         DataFrame frame;
         frame.cameraImg = imgGray;
-        dataBuffer.push_back(frame);
-        if(dataBuffer.size() > dataBufferSize)
-        {
-            dataBuffer.erase(dataBuffer.begin());
-        }
+        dataBuffer.Write(frame);
 
-        MyBuffer.Write(imgNumber.str());
+        //MyBuffer.Write(imgNumber.str());
         //// EOF STUDENT ASSIGNMENT
         cout << "=============================================" << endl;
         cout << "#1 : LOAD IMAGE INTO BUFFER done:" <<  imgFileName << endl;
@@ -141,7 +138,7 @@ int main(int argc, const char *argv[])
         }
 
         // push keypoints and descriptor for current frame to end of data buffer
-        (dataBuffer.end() - 1)->keypoints = keypoints;
+        dataBuffer.ReadLast()->keypoints = keypoints;
         cout << "#2 : DETECT KEYPOINTS done" << endl;
 
         /* EXTRACT KEYPOINT DESCRIPTORS */
@@ -162,15 +159,15 @@ int main(int argc, const char *argv[])
             descriptorType = "BRIEF";
         }
         // Probably, SIFT should only be used as both extractor/descriptor at the same time.
-
-        //
-        descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptorType);
+        descKeypoints(dataBuffer.ReadLast()->keypoints, dataBuffer.ReadLast()->cameraImg, descriptors, descriptorType);
         //// EOF STUDENT ASSIGNMENT
 
         // push descriptors for current frame to end of data buffer
-        (dataBuffer.end() - 1)->descriptors = descriptors;
+        dataBuffer.ReadLast()->descriptors = descriptors;
 
         cout << "#3 : EXTRACT DESCRIPTORS done" << endl;
+
+        cout << "dataBuffer.size() = " << dataBuffer.size() << endl;
 
         if (dataBuffer.size() > 1) // wait until at least two images have been processed
         {
@@ -186,14 +183,14 @@ int main(int argc, const char *argv[])
             //// TASK MP.5 -> add FLANN matching in file matching2D.cpp
             //// TASK MP.6 -> add KNN match selection and perform descriptor distance ratio filtering with t=0.8 in file matching2D.cpp
 
-            matchDescriptors((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints,
-                             (dataBuffer.end() - 2)->descriptors, (dataBuffer.end() - 1)->descriptors,
+            matchDescriptors(dataBuffer.Read2ndLast()->keypoints, dataBuffer.ReadLast()->keypoints,
+                             dataBuffer.Read2ndLast()->descriptors, dataBuffer.ReadLast()->descriptors,
                              matches, descriptorType, matcherType, selectorType);
 
             //// EOF STUDENT ASSIGNMENT
 
             // store matches in current data frame
-            (dataBuffer.end() - 1)->kptMatches = matches;
+            dataBuffer.ReadLast()->kptMatches = matches;
 
             cout << "#4 : MATCH KEYPOINT DESCRIPTORS done" << endl;
 
@@ -201,9 +198,9 @@ int main(int argc, const char *argv[])
             bVis = true;
             if (bVis)
             {
-                cv::Mat matchImg = ((dataBuffer.end() - 1)->cameraImg).clone();
-                cv::drawMatches((dataBuffer.end() - 2)->cameraImg, (dataBuffer.end() - 2)->keypoints,
-                                (dataBuffer.end() - 1)->cameraImg, (dataBuffer.end() - 1)->keypoints,
+                cv::Mat matchImg = (dataBuffer.ReadLast()->cameraImg).clone();
+                cv::drawMatches(dataBuffer.Read2ndLast()->cameraImg, dataBuffer.Read2ndLast()->keypoints,
+                                dataBuffer.ReadLast()->cameraImg, dataBuffer.ReadLast()->keypoints,
                                 matches, matchImg,
                                 cv::Scalar::all(-1), cv::Scalar::all(-1),
                                 vector<char>(), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
