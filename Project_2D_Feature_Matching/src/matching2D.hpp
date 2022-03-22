@@ -34,20 +34,22 @@ class RingBuffer
 {
 public:
     RingBuffer(unsigned int buffer_size); // Constructor
-    T Read();
+    T ReadLast();
+    T Read2ndLast();
     void Write(T input);
-
+    //void Print();
 private:
     std::vector<T> Buffer;
     unsigned int ReadIndex;
     unsigned int WriteIndex;
+    void UpdateReadIndex();
 };
 
 template <class T>
 RingBuffer<T>::RingBuffer(unsigned int buffer_size): Buffer(buffer_size) // Constructor
 {
     ReadIndex  = 0;
-    WriteIndex = 0; //buffer_size-1;
+    WriteIndex = 0;
 }
 
 template <class T>
@@ -59,19 +61,57 @@ void RingBuffer<T>::Write(T input)
     {
         WriteIndex = 0;
     }
+    UpdateReadIndex();
 }
 
 template <class T>
-T RingBuffer<T>::Read()
+T RingBuffer<T>::ReadLast()
 {
     T output = Buffer[ReadIndex];
+    return output;
+}
+
+template <class T>
+T RingBuffer<T>::Read2ndLast()
+{
+    T output;
+
+    if(ReadIndex == 0)
+    {
+        output = Buffer[Buffer.size()-1];
+    }
+    else
+    {
+        output = Buffer[ReadIndex-1];
+    }
+
+    return output;
+}
+
+template <class T>
+void RingBuffer<T>::UpdateReadIndex()
+{
     ReadIndex +=1;
     if(ReadIndex >= Buffer.size())
     {
         ReadIndex = 0;
     }
-    return output;
 }
+
+/*
+template <class T>
+void RingBuffer<T>::Print()
+{
+    std::cout << "---- RingBuffer ----" << std::endl;
+    for(int i=0; i < Buffer.size(); ++i)
+    {
+        std::cout << "Buffer[" << i << "] = " << Buffer[i] << std::endl;
+    }
+    std::cout << "Read2ndLast = " << Read2ndLast() << std::endl;
+    std::cout << "ReadLast    = " << ReadLast()    << std::endl;
+}
+*/
+
 //----------------------------------------------------------------------//
 
 #endif /* matching2D_hpp */

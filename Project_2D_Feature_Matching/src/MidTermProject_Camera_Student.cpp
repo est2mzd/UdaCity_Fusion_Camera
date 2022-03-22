@@ -45,6 +45,7 @@ int main(int argc, const char *argv[])
     vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
     bool bVis = true;            // visualize results
 
+    RingBuffer<std::string> MyBuffer(4);
     /* MAIN LOOP OVER ALL IMAGES */
 
     for (size_t imgIndex = 0; imgIndex <= imgEndIndex - imgStartIndex; imgIndex++)
@@ -74,6 +75,7 @@ int main(int argc, const char *argv[])
             dataBuffer.erase(dataBuffer.begin());
         }
 
+        MyBuffer.Write(imgNumber.str());
         //// EOF STUDENT ASSIGNMENT
         cout << "=============================================" << endl;
         cout << "#1 : LOAD IMAGE INTO BUFFER done:" <<  imgFileName << endl;
@@ -216,6 +218,8 @@ int main(int argc, const char *argv[])
                 {
                     string filePathOut = "../results/" + imgNumber.str() + ".png";
                     cv::imwrite(filePathOut, matchImg);
+                    //
+                    //MyBuffer.Print();
                 }
                 //
                 cout << "Press key to continue to next image" << endl;
