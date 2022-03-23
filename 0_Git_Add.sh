@@ -5,3 +5,5 @@ git add -A *.txt
 git add -A *.sh
 git add -A *.md
 git add *MidTermReport.txt
+git add */results/*.png
+git add */results/*.txt

@@ -125,6 +125,21 @@ else if (selectorType.compare("SEL_KNN") == 0)
     }
 }  
 ```
+
+### Results Analysis
+- I show the number of keypoints.
+- The ascend order is "HARRIS", "SHITOMASI", "ORB", "SIFT", "AKAZE", "BRISK", "FAST".
+
+
+![](./results/SensorFusion_Camera_MidTermReport_Keypoints.PNG)
+
+- I show the calculation times.
+
+![](./results/SensorFusion_Camera_MidTermReport_CpuTime.PNG)
+
+
+- I show the all detail results.
+
 |Detector|Descriptor|kpt|kptMatched|TimeDetect[ms]|TimeDescript[ms]|
 |:---:|:---:|:---:|:---:|:---:|:---:|
 |HARRIS|SURF|25|23|7.67309|0.223901|
