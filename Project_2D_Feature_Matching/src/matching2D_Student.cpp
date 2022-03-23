@@ -1,9 +1,11 @@
 #include <numeric>
+#include <fstream>
 #include "matching2D.hpp"
 
+#include <sys/stat.h>
+
+
 using namespace std;
-
-
 
 // Find best matches for keypoints in two camera images based on several matching methods
 void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource, std::vector<cv::KeyPoint> &kPtsRef, cv::Mat &descSource, cv::Mat &descRef,
@@ -155,7 +157,7 @@ void detKeypointsShiTomasi(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool b
         string windowName = "Shi-Tomasi Corner Detector Results";
         cv::namedWindow(windowName, 6);
         imshow(windowName, visImage);
-        cv::waitKey(0);
+        //cv::waitKey(0);
     }
 }
 
@@ -166,7 +168,7 @@ void visualizeResults(cv::Mat& img, std::string window_name, vector<cv::KeyPoint
     string windowName = window_name;
     cv::namedWindow(windowName, 6);
     imshow(windowName, visImage);
-    cv::waitKey(0);
+    //cv::waitKey(0);
 }
 
 // Detect keypoints in image
@@ -302,3 +304,76 @@ void detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool
     }// end of loop : Y direction
 }
 
+////------------------------------------------------------------------------------------------------------------------
+void CvTimeCount(double& t, bool FlagStart)
+{
+    if(FlagStart)
+    {
+        t = (double)cv::getTickCount();
+    }
+    else
+    {
+        t = ((double)cv::getTickCount() - t) / cv::getTickFrequency() * 1000.0; // ms
+    }
+}
+
+////------------------------------------------------------------------------------------------------------------------
+ReportData::ReportData()
+{
+    numImage            = 0;
+    numKeypoints        = 0;
+    numMatchedKeypoints = 0;
+    cpuTimeDetect       = 0.0;
+    cpuTimeDescript     = 0.0;
+    nameDetector        = "no_name";
+    nameDescriptor      = "no_name";
+    fileNameLog         = "no_name";
+    exportDirectory     = "../results";
+};
+
+void ReportData::CreateFileNameLog()
+{
+    filePathLog = exportDirectory + "/" + fileNameLog;
+}
+
+void ReportData::CreateExportDir()
+{
+    const char* dir = exportDirectory.c_str();
+    mkdir(dir, S_IRWXU); // mode = read/write is OK
+}
+
+void ReportData::CalcAverage()
+{
+    numKeypoints         /= numImage;
+    numMatchedKeypoints  /= numImage;
+    cpuTimeDetect  /= numImage;
+    cpuTimeDescript  /= numImage;
+}
+
+void ReportData::exportReport(bool bAppendToFile)
+{
+    CreateExportDir();
+    CreateFileNameLog();
+    CalcAverage();
+    string spacer = "\t";
+    std::ofstream file;
+    //
+    if(!bAppendToFile)
+    {
+        file.open(filePathLog, std::ios::out);
+        file << "Detector"   << spacer << "Descriptor" << spacer
+             << "kpt"        << spacer << "kptMatched" << spacer
+             << "TimeDetect[ms]" << spacer << "TimeDescript[ms]"
+             << std::endl;
+    }
+    else
+    {
+        file.open(filePathLog, std::ios::app);
+    }
+    file << nameDetector  << spacer << nameDescriptor      << spacer
+         << numKeypoints  << spacer << numMatchedKeypoints << spacer
+         << cpuTimeDetect << spacer << cpuTimeDescript
+         << std::endl;
+    //
+    file.close();
+}

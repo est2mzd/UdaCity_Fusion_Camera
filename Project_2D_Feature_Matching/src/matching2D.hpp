@@ -18,7 +18,7 @@
 
 #include "dataStructures.h"
 
-
+////-------------------------------------------------------------------------------------------------------------------
 void detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis=false);
 void detKeypointsShiTomasi(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis=false);
 void detKeypointsModern(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, std::string detectorType, bool bVis=false);
@@ -26,6 +26,10 @@ void descKeypoints(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, cv::Mat &
 void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource, std::vector<cv::KeyPoint> &kPtsRef, cv::Mat &descSource, cv::Mat &descRef,
                       std::vector<cv::DMatch> &matches, std::string descriptorType, std::string matcherType, std::string selectorType);
 void visualizeResults(cv::Mat& img, std::string window_name, std::vector<cv::KeyPoint> keypoints);
+////-------------------------------------------------------------------------------------------------------------------
+
+////-------------------------------------------------------------------------------------------------------------------
+void CvTimeCount(double& t, bool FlagStart);
 
 //----------------------------------------------------------------------//
 // https://www.modernmetalproduction.com/simple-circular-buffer-in-c/
@@ -71,25 +75,20 @@ void RingBuffer<T>::Write(T input)
 template <class T>
 T* RingBuffer<T>::ReadLast()
 {
-    T* output = &Buffer[ReadIndex];
-    return output;
+    return &Buffer[ReadIndex];
 }
 
 template <class T>
 T* RingBuffer<T>::Read2ndLast()
 {
-    T* output;
-
     if(ReadIndex == 0)
     {
-        output = &Buffer[Buffer.size()-1];
+        return &Buffer[Buffer.size()-1];
     }
     else
     {
-        output = &Buffer[ReadIndex-1];
+        return &Buffer[ReadIndex-1];
     }
-
-    return output;
 }
 
 template <class T>
@@ -130,6 +129,30 @@ void RingBuffer<T>::Print()
 }
 */
 
-//----------------------------------------------------------------------//
+class ReportData
+{
+public:
+    int numImage;
+    int numKeypoints;
+    int numMatchedKeypoints;
+    double cpuTimeDetect;
+    double cpuTimeDescript;
+    std::string nameDetector;
+    std::string nameDescriptor;
+    std::string exportDirectory;
+    std::string fileNameLog;
+    ReportData();
+    void exportReport(bool bAppendToFile);
+
+private:
+    std::string filePathLog;
+    void CreateFileNameLog();
+    void CreateExportDir();
+    void CalcAverage();
+};
+
+
+
+////-------------------------------------------------------------------------------------------------------------------
 
 #endif /* matching2D_hpp */

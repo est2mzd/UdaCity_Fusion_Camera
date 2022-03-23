@@ -1,0 +1,2 @@
+Detector	Descriptor	kpt	kptMatched	TimeDetect[ms]	TimeDescript[ms]
+FAST	BRIEF	408	410	8.01165	0.916393
