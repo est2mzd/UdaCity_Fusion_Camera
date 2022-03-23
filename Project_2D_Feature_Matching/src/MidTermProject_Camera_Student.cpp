@@ -21,9 +21,47 @@
 using namespace std;
 
 //----------------------------------------------------------------------//
+int parameter_study(string detectorType, string descriptorType, bool bAppendToFile);
+std::vector<string> detectorTypes = {"SHITOMASI", "HARRIS", "FAST", "BRISK", "ORB", "AKAZE", "SIFT"};
+string detectorType = detectorTypes[2]; // 0 to 6;
+std::vector<string> descriptorTypes = {"BRISK", "BRIEF", "ORB", "FREAK", "AKAZE", "SIFT", "SURF"};
+string descriptorType = descriptorTypes[4];
+bool bAppendToFile = false;
 
+////---------------------------------------------------------------------------------------------------------
 /* MAIN PROGRAM */
 int main(int argc, const char *argv[])
+{
+    std::vector<string> detectorTypes   = { "HARRIS", "SHITOMASI", "ORB", "SIFT", "AKAZE", "BRISK", "FAST"};
+    std::vector<string> descriptorTypes = {"SURF", "BRIEF", "ORB", "SIFT", "BRISK", "FREAK", "AKAZE"};
+    bool bAppendToFile = false;
+    for(string detectorType : detectorTypes)
+    {
+        for(string descriptorType : descriptorTypes)
+        {
+            if((detectorType=="SIFT") && (descriptorType == "ORB"))
+            {
+                continue;
+            }
+            /*
+            struct stat statBuf;
+            string dir = "../results/" + detectorType + "_" + descriptorType;
+            if(stat(dir.c_str(), &statBuf) == 0)
+            {
+                bAppendToFile = true;
+                continue;
+            }
+            */
+            //
+            parameter_study(detectorType, descriptorType, bAppendToFile);
+            bAppendToFile = true;
+            cout << "OK : " << detectorType << " / " << descriptorType << endl;
+        }
+    }
+}
+
+////---------------------------------------------------------------------------------------------------------
+int parameter_study(string detectorType, string descriptorType, bool bAppendToFile)
 {
     /* INIT VARIABLES AND DATA STRUCTURES */
 
@@ -47,7 +85,7 @@ int main(int argc, const char *argv[])
     ////---------------------------------------------------------------------------------------------------------------
     // For Reporting
     ReportData Report;
-    Report.fileNameLog = "MidTermReport.txt";
+    Report.fileNameLog     = "MidTermReport.txt";
     Report.exportDirectory = "../results";
     double cpuTimeDetect;
     double cpuTimeDescript;
@@ -90,8 +128,7 @@ int main(int argc, const char *argv[])
         //// STUDENT ASSIGNMENT ---------------------------------------------------------------------------------------
         //// TASK MP.2 -> add the following keypoint detectors in file matching2D.cpp and enable string-based selection
         //// based on detectorType -> HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
-        std::vector<string> detectorTypes = {"SHITOMASI", "HARRIS", "FAST", "BRISK", "ORB", "AKAZE", "SIFT"};
-        string detectorType = detectorTypes[2]; // 0 to 6;
+
 
         CvTimeCount(cpuTimeDetect, true);
         if (detectorType.compare("SHITOMASI") == 0)
@@ -152,15 +189,14 @@ int main(int argc, const char *argv[])
         //// TASK MP.4 -> add the following descriptors in file matching2D.cpp and enable string-based selection
         //// based on descriptorType -> BRIEF, ORB, FREAK, AKAZE, SIFT
         cv::Mat descriptors;
-        std::vector<string> descriptorTypes = {"BRISK", "BRIEF", "ORB", "FREAK", "AKAZE", "SIFT", "SURF"};
-        string descriptorType = descriptorTypes[4];
+
 
         // Error Check : Some descriptors like KAZE and AKAZE only work with their own keypoints.
         // Probably, SIFT should only be used as both extractor/descriptor at the same time.
         // https://github.com/kyamagu/mexopencv/issues/351
         if ((detectorType != "AKAZE") && (descriptorType == "AKAZE"))
         {
-            descriptorType = "BRIEF";
+            return 0;
         }
         CvTimeCount(cpuTimeDescript, true);
         descKeypoints(dataBuffer.ReadLast()->keypoints, dataBuffer.ReadLast()->cameraImg, descriptors, descriptorType);
@@ -240,7 +276,7 @@ int main(int argc, const char *argv[])
 
     } // eof loop over all images
 
-    bool bAppendToFile = false;
+
     Report.exportReport(bAppendToFile);
 
     cout << "----< Result Check >----" << endl;

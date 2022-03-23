@@ -355,25 +355,30 @@ void ReportData::exportReport(bool bAppendToFile)
     CreateExportDir();
     CreateFileNameLog();
     CalcAverage();
-    string spacer = "\t";
+    string spacer = "|";
     std::ofstream file;
     //
     if(!bAppendToFile)
     {
         file.open(filePathLog, std::ios::out);
-        file << "Detector"   << spacer << "Descriptor" << spacer
-             << "kpt"        << spacer << "kptMatched" << spacer
-             << "TimeDetect[ms]" << spacer << "TimeDescript[ms]"
-             << std::endl;
+        file << spacer << "Detector" << spacer << "Descriptor"
+             << spacer << "kpt"      << spacer << "kptMatched"
+             << spacer << "TimeDetect[ms]" << spacer << "TimeDescript[ms]"
+             << spacer << std::endl;
+
+        file << spacer << ":---:" << spacer << ":---:"
+             << spacer << ":---:" << spacer << ":---:"
+             << spacer << ":---:" << spacer << ":---:"
+             << spacer << std::endl;
     }
     else
     {
         file.open(filePathLog, std::ios::app);
     }
-    file << nameDetector  << spacer << nameDescriptor      << spacer
-         << numKeypoints  << spacer << numMatchedKeypoints << spacer
-         << cpuTimeDetect << spacer << cpuTimeDescript
-         << std::endl;
+    file << spacer << nameDetector  << spacer << nameDescriptor
+         << spacer << numKeypoints  << spacer << numMatchedKeypoints
+         << spacer << cpuTimeDetect << spacer << cpuTimeDescript
+         << spacer << std::endl;
     //
     file.close();
 }
