@@ -7,3 +7,4 @@ git add -A *.md
 git add *MidTermReport.txt
 git add */results/*.png
 git add */results/*.txt
+git add */images/keypoints.png
