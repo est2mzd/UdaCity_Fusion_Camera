@@ -130,12 +130,12 @@ else if (selectorType.compare("SEL_KNN") == 0)
 - I show the number of keypoints.
 - The ascend order is "HARRIS", "SHITOMASI", "ORB", "SIFT", "AKAZE", "BRISK", "FAST".
 
-
-![](./results/SensorFusion_Camera_MidTermReport_Keypoints.PNG)
+<img src="results/SensorFusion_Camera_MidTermReport_Keypoints.png" width="820" height="400" />
 
 - I show the calculation times.
 
-![](./results/SensorFusion_Camera_MidTermReport_CpuTime.PNG)
+
+<img src="results/SensorFusion_Camera_MidTermReport_CpuTime.png" width="820" height="400" />
 
 
 - I show the all detail results.
