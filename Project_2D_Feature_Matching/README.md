@@ -126,18 +126,46 @@ else if (selectorType.compare("SEL_KNN") == 0)
 }  
 ```
 
+### Conclusion
+- I recommend 3 sets of detectors and descriptors.
+  1. detector = SHITOMASI / descriptor = BRIEF
+  2. detector = ORB / descriptor = BRIEF
+  3. detector = FAST / descriptor = BRIEF
+- I show the reasons below.
+
+
 ### Results Analysis
-- I show the number of keypoints.
-- The ascend order is "HARRIS", "SHITOMASI", "ORB", "SIFT", "AKAZE", "BRISK", "FAST".
+- I show the number of keypoints in the Fig-1.
+- The HARRIS detector detects very few keypoins. So, I do not recommend this.
 
 <img src="results/SensorFusion_Camera_MidTermReport_Keypoints.png" width="820" height="400" />
+Fig-1 : The comparison of keypoints. Lower labels is detectors. Upper labels are descriptors.
 
-- I show the calculation times.
-
+- I show the calculation times in the Fig-2.
+- The detector "SIFT", "AKAZE" and "BRISK" took large calculation time. So, I do not recommend these.
 
 <img src="results/SensorFusion_Camera_MidTermReport_CpuTime.png" width="820" height="400" />
+Fig-2 : The comparison of calculation times. Lower labels is detectors. Upper labels are descriptors.
 
 
+### Results Images
+- I show the results images.
+- HARRIS -> BRIEF : keypoins = 25
+<img src="results/HARRIS_BRIEF/result.gif" width="800" />
+- SHITOMASI -> BRIEF : keypoins = 117
+  <img src="results/SHITOMASI_BRIEF/result.gif" width="800" />
+- ORB -> BRIEF : keypoins = 118
+  <img src="results/ORB_BRIEF/result.gif" width="800" />
+- SIFT -> BRIEF : keypoins = 138
+  <img src="results/SIFT_BRIEF/result.gif" width="800" />
+- AKAZE -> BRIEF : keypoins = 167
+  <img src="results/AKAZE_BRIEF/result.gif" width="800" />
+- BRISK -> BRIEF : keypoins = 278
+  <img src="results/BRISK_BRIEF/result.gif" width="800" />
+- FAST -> BRIEF : keypoins = 410
+  <img src="results/FAST_BRIEF/result.gif" width="800" />
+
+### Results Details
 - I show the all detail results.
 
 |Detector|Descriptor|kpt|kptMatched|TimeDetect[ms]|TimeDescript[ms]|
