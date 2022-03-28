@@ -1,3 +1,0 @@
-/home/takuya/HDD1/UdaCity/Fusion/SFND_Camera_Object_Tracking/Project_2D_Feature_Matching/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/takuya/HDD1/UdaCity/Fusion/SFND_Camera_Object_Tracking/Project_2D_Feature_Matching/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/takuya/HDD1/UdaCity/Fusion/SFND_Camera_Object_Tracking/Project_2D_Feature_Matching/cmake-build-debug/CMakeFiles/2D_feature_tracking.dir

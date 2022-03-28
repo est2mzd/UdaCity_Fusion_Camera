@@ -7,3 +7,7 @@ git rm -rf --cached ./L04_07_Popular_Keypoint_Detectors/detect_keypoints/cmake-b
 git rm -rf --cached ./L04_11_HOG_vs_BinaryDescriptors/describe_keypoints/cmake-build-debug
 
 git rm -rf --cached ./L04_12_Descriptor_Matching/descriptor_matching/cmake-build-debug
+
+git rm -rf --cached ./L06_01*/cmake-build-debug
+
+git rm -rf --cached */cmake-build-debug/
