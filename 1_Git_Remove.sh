@@ -8,6 +8,9 @@ git rm -rf --cached ./L04_11_HOG_vs_BinaryDescriptors/describe_keypoints/cmake-b
 
 git rm -rf --cached ./L04_12_Descriptor_Matching/descriptor_matching/cmake-build-debug
 
-git rm -rf --cached ./L06_01*/cmake-build-debug
+git rm -rf --cached ./L06_01_Point_Projection/lidar_to_camera/build
+git rm -rf --cached ./L06_01_Point_Projection/lidar_to_camera/cmake-build-debug
+
+git rm -rf --cached ./L06_08_YOLOv3_Workflow/detect_objects/cmake-build-debug
 
 git rm -rf --cached */cmake-build-debug/

@@ -15,10 +15,10 @@ void loadCalibrationData(cv::Mat &P_rect_00, cv::Mat &R_rect_00, cv::Mat &RT)
     RT.at<double>(2,0) = 9.998621e-01; RT.at<double>(2,1) = 7.523790e-03; RT.at<double>(2,2) = 1.480755e-02; RT.at<double>(2,3) = -2.717806e-01;
     RT.at<double>(3,0) = 0.0; RT.at<double>(3,1) = 0.0; RT.at<double>(3,2) = 0.0; RT.at<double>(3,3) = 1.0;
     
-    R_rect_00.at<double>(0,0) = 9.999239e-01; R_rect_00.at<double>(0,1) = 9.837760e-03; R_rect_00.at<double>(0,2) = -7.445048e-03; R_rect_00.at<double>(0,3) = 0.0;
+    R_rect_00.at<double>(0,0) = 9.999239e-01;  R_rect_00.at<double>(0,1) = 9.837760e-03; R_rect_00.at<double>(0,2) = -7.445048e-03; R_rect_00.at<double>(0,3) = 0.0;
     R_rect_00.at<double>(1,0) = -9.869795e-03; R_rect_00.at<double>(1,1) = 9.999421e-01; R_rect_00.at<double>(1,2) = -4.278459e-03; R_rect_00.at<double>(1,3) = 0.0;
-    R_rect_00.at<double>(2,0) = 7.402527e-03; R_rect_00.at<double>(2,1) = 4.351614e-03; R_rect_00.at<double>(2,2) = 9.999631e-01; R_rect_00.at<double>(2,3) = 0.0;
-    R_rect_00.at<double>(3,0) = 0; R_rect_00.at<double>(3,1) = 0; R_rect_00.at<double>(3,2) = 0; R_rect_00.at<double>(3,3) = 1;
+    R_rect_00.at<double>(2,0) = 7.402527e-03;  R_rect_00.at<double>(2,1) = 4.351614e-03; R_rect_00.at<double>(2,2) = 9.999631e-01;  R_rect_00.at<double>(2,3) = 0.0;
+    R_rect_00.at<double>(3,0) = 0;             R_rect_00.at<double>(3,1) = 0;            R_rect_00.at<double>(3,2) = 0;             R_rect_00.at<double>(3,3) = 1;
     
     P_rect_00.at<double>(0,0) = 7.215377e+02; P_rect_00.at<double>(0,1) = 0.000000e+00; P_rect_00.at<double>(0,2) = 6.095593e+02; P_rect_00.at<double>(0,3) = 0.000000e+00;
     P_rect_00.at<double>(1,0) = 0.000000e+00; P_rect_00.at<double>(1,1) = 7.215377e+02; P_rect_00.at<double>(1,2) = 1.728540e+02; P_rect_00.at<double>(1,3) = 0.000000e+00;
@@ -45,21 +45,38 @@ void projectLidarToCamera2()
     cv::Mat visImg = img.clone();
     cv::Mat overlay = visImg.clone();
 
-    cv::Mat X(4,1,cv::DataType<double>::type);
-    cv::Mat Y(3,1,cv::DataType<double>::type);
+    cv::Mat Coord3D(4, 1, cv::DataType<double>::type);
+    cv::Mat Coord2D(3, 1, cv::DataType<double>::type);
     for(auto it=lidarPoints.begin(); it!=lidarPoints.end(); ++it) {
-        // 1. Convert current Lidar point into homogeneous coordinates and store it in the 4D variable X.
+        // 4. Filtering
+        float maxX = 25.0, maxY = 6.0, minZ = -1.4;
+        if(it->x > maxX || it->x < 0.0 || abs(it->y) > maxY || it->z < minZ || it->r < 0.01)
+        {
+            continue;
+        }
 
-        // 2. Then, apply the projection equation as detailed in lesson 5.1 to map X onto the image plane of the camera. 
-        // Store the result in Y.
+        // 1. Convert current Lidar point into homogeneous coordinates and store it in the 4D variable Coord3D.
+        Coord3D.at<double>(0, 0) = it->x; // X = Longitudinal
+        Coord3D.at<double>(1, 0) = it->y; // Y = Lateral
+        Coord3D.at<double>(2, 0) = it->z; // Z = Vertical
+        Coord3D.at<double>(3, 0) = 1.0;
 
-        // 3. Once this is done, transform Y back into Euclidean coordinates and store the result in the variable pt.
+        // 2. Then, apply the projection equation as detailed in lesson 5.1 to map Coord3D onto the image plane of the camera.
+        // Store the result in Coord2D.
+        Coord2D = P_rect_00 * R_rect_00 * RT * Coord3D; // X = Vertical , Y = Lateral
+
+        // 3. Once this is done, transform Coord2D back into Euclidean coordinates and store the result in the variable pt.
         cv::Point pt;
+        pt.x = Coord2D.at<double>(0, 0) / Coord2D.at<double>(2, 0); // vertical in image (use longi & vertical in 3D)
+        pt.y = Coord2D.at<double>(1, 0) / Coord2D.at<double>(2, 0); // lareral  in image (use longi & lateral  in 3D)
 
-        float val = it->x;
-        float maxVal = 20.0;
-        int red = min(255, (int)(255 * abs((val - maxVal) / maxVal)));
-        int green = min(255, (int)(255 * (1 - abs((val - maxVal) / maxVal))));
+        // create color
+        float val       = it->x; // Longitudinal Distance in 3D
+        float maxVal    = 20.0;
+        float red_ratio = abs( (val - maxVal) / maxVal );
+        int red         = min(255, (int)(255 * red_ratio)       );
+        int green       = min(255, (int)(255 * (1 - red_ratio) ));
+        // Plot a circle in the 2D image plane.
         cv::circle(overlay, pt, 5, cv::Scalar(0, green, red), -1);
     }
 
