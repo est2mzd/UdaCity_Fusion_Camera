@@ -10,10 +10,29 @@
 
 using namespace std;
 
+void CvTimeCount(double& t, bool FlagStart)
+{
+    if(FlagStart)
+    {
+        t = (double)cv::getTickCount();
+    }
+    else
+    {
+        t = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
+    }
+}
+
+
 void detectObjects2()
 {
+    // calc cpu time
+    double cpu_time;
+    CvTimeCount(cpu_time, true);
+
     // load image from file
     cv::Mat img = cv::imread("../images/s_thrun.jpg");
+    //cv::Mat img = cv::imread("../images/stop_sign.jpg");
+    //cv::Mat img = cv::imread("../images/tennis.jpeg");
 
     // load class names from file
     string yoloBasePath = "../dat/yolo/";
@@ -25,7 +44,7 @@ void detectObjects2()
     ifstream ifs(yoloClassesFile.c_str());
     string line;
     while (getline(ifs, line)) classes.push_back(line);
-    
+
     // load neural network
     cv::dnn::Net net = cv::dnn::readNetFromDarknet(yoloModelConfiguration, yoloModelWeights);
     net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
@@ -34,7 +53,8 @@ void detectObjects2()
     // generate 4D blob from input image
     cv::Mat blob;
     double scalefactor = 1/255.0;
-    cv::Size size = cv::Size(416, 416);
+    int sizeOfBlob = 416; // 320/416/608
+    cv::Size size = cv::Size(sizeOfBlob, sizeOfBlob);
     cv::Scalar mean = cv::Scalar(0,0,0);
     bool swapRB = false;
     bool crop = false;
@@ -132,6 +152,10 @@ void detectObjects2()
     string windowName = "Object classification";
     cv::namedWindow( windowName, 1 );
     cv::imshow( windowName, visImg );
+
+    CvTimeCount(cpu_time, false);
+    std::cout << "cpu time = " << cpu_time << "micro sec" << std::endl;
+
     cv::waitKey(0); // wait for key to be pressed
 }
 
