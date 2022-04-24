@@ -212,7 +212,6 @@ int main(int argc, const char *argv[])
             (dataBuffer.end() - 1)->kptMatches = matches;
 
             cout << "#7 : MATCH KEYPOINT DESCRIPTORS done" << endl;
-
             
             /* TRACK 3D OBJECT BOUNDING BOXES */
 
@@ -290,8 +289,7 @@ int main(int argc, const char *argv[])
                     bVis = false;
 
                 } // eof TTC computation
-            } // eof loop over all BB matches            
-
+            } // eof loop over all BB matches
         }
 
     } // eof loop over all images

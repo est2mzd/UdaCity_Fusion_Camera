@@ -46,13 +46,14 @@ void clusterLidarWithROI(std::vector<BoundingBox> &boundingBoxes, std::vector<Li
             // check wether a point is within current bounding box
             if (smallerBBox.contains(pointImagePlane))
             {
+                // <Modification-1/3> : avoid duplicated inclusion of lidar points
                 itBBox->lidarPoints.push_back(*itLidar);
                 lidarPoints.erase(itLidar);
                 itLidar--;
                 break;
             }
 
-
+            // <Modification-2/3> : enclosingBoxes are not used anywhere.
             /*
             // check wether point is within current bounding box
             if (smallerBBox.contains(pointImagePlane))
@@ -63,6 +64,7 @@ void clusterLidarWithROI(std::vector<BoundingBox> &boundingBoxes, std::vector<Li
 
         } // eof loop over all bounding boxes
 
+        // <Modification-3/3> : enclosingBoxes are not used anywhere.
         /*
         // check wether point has been enclosed by one or by multiple boxes
         if (enclosingBoxes.size() == 1)
@@ -154,44 +156,6 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
 void clusterKptMatchesWithROI(BoundingBox &bBoxCurr, std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, std::vector<cv::DMatch> &kptMatches)
 {
     cout << "------------------- Task-3 <start> ----------------------------" << endl;
-    /*
-    // Type-1 : Calculate the average distance
-    // this calculate the distance which use unmatched keypoints also. 
-    cout << "bBoxCurr->keypoints.size() = "  << bBoxCurr.keypoints.size() << endl;  // 0
-    cout << "bBoxCurr->kptMatches.size() = " << bBoxCurr.kptMatches.size() << endl; // 0
-    cout << "kptsPrev.size() = " << kptsPrev.size() << endl; // 50
-    cout << "kptsCurr.size() = " << kptsCurr.size() << endl; // 48
-    cout << "kptMatches.size() = " << kptMatches.size() << endl; // 50
-
-    vector<double> distances;
-    double distance_sum = 0;
-    int counter = 0;
-    for (auto itKeyPrev = kptsPrev.begin(); itKeyPrev != kptsPrev.end(); ++itKeyPrev)
-    {
-        for (auto itKeyCurr = kptsCurr.begin(); itKeyCurr != kptsCurr.end(); ++itKeyCurr)
-        {
-            if(bBoxCurr.roi.contains(itKeyPrev->pt) && bBoxCurr.roi.contains(itKeyCurr->pt))
-            {
-                double dX = (itKeyPrev->pt.x - itKeyCurr->pt.x);
-                double dY = (itKeyPrev->pt.y - itKeyCurr->pt.y);
-                double distance = pow((dX*dX + dY*dY), 0.5);
-                distance_sum += distance;
-                counter +=1;
-                cout << counter << ": distance = " << distance << endl;
-                cout << "    " << "roi.width  = " << bBoxCurr.roi.width << endl;
-                cout << "    " << "roi.height = " << bBoxCurr.roi.height << endl;
-            }
-        }
-    }
-
-    double distance_ave = distance_sum / counter;
-    cout << "distance_ave = " << distance_ave << endl;
-    // End of Type-1
-    */
-
-    //----------------------------------------------------//
-    // Type-2 :
-
     //----------------------------------------------------//
     // Calculate the average distance
     std::vector<double> eucliDists;
@@ -252,13 +216,62 @@ void clusterKptMatchesWithROI(BoundingBox &bBoxCurr, std::vector<cv::KeyPoint> &
 void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPoint> &kptsCurr, 
                       std::vector<cv::DMatch> kptMatches, double frameRate, double &TTC, cv::Mat *visImg)
 {
-    // ...
+    cout << "------------------- Task-4 <start> ----------------------------" << endl;
+    // compute distance ratios between all matched keypoints
+    vector<double> distRatios; // stores the distance ratios for all keypoints between curr. and prev. frame
+    for (auto it1 = kptMatches.begin(); it1 != kptMatches.end() - 1; ++it1)
+    { // outer keypoint loop : (start) to (end-1)
+        // get current keypoint and its matched partner in the prev. frame
+        cv::KeyPoint kpOuterCurr = kptsCurr.at(it1->trainIdx);
+        cv::KeyPoint kpOuterPrev = kptsPrev.at(it1->queryIdx);
+
+        for (auto it2 = kptMatches.begin() + 1; it2 != kptMatches.end(); ++it2)
+        { // inner keypoint loop : (start+1) to (end)
+
+            double minDist = 100.0; // min. required distance
+
+            // get next keypoint and its matched partner in the prev. frame
+            cv::KeyPoint kpInnerCurr = kptsCurr.at(it2->trainIdx);
+            cv::KeyPoint kpInnerPrev = kptsPrev.at(it2->queryIdx);
+
+            // compute distances and distance ratios
+            double distCurr = cv::norm(kpOuterCurr.pt - kpInnerCurr.pt);
+            double distPrev = cv::norm(kpOuterPrev.pt - kpInnerPrev.pt);
+
+            if (distPrev > std::numeric_limits<double>::epsilon() && distCurr >= minDist)
+            { // avoid division by zero
+                double distRatio = distCurr / distPrev;
+                distRatios.push_back(distRatio);
+            }
+        } // eof inner loop over all matched kpts
+    }     // eof outer loop over all matched kpts
+
+    // only continue if list of distance ratios is not empty
+    if (distRatios.size() == 0)
+    {
+        TTC = NAN;
+        return;
+    }
+
+    //-----------------------------------------------------------------------------
+    // TODO: STUDENT TASK (replacement for meanDistRatio)
+    std::sort(distRatios.begin(), distRatios.end());
+    double dT       = 1 / frameRate;
+    int  dataSize   = distRatios.size();
+    int  middleId   = floor(dataSize / 2.0);
+    bool isEvenSize = (dataSize % 2 == 0) ? true : false;
+    double medianDistRatio = isEvenSize ? 0.5*(distRatios[middleId-1]+distRatios[middleId]) : distRatios[middleId];
+
+    TTC = -dT / (1 - medianDistRatio);
+    std::cout << "medianDistRatio = " << medianDistRatio << " / Camera TTC = " << TTC << std::endl;
+    cout << "------------------- Task-4 <end> ----------------------------" << endl;
 }
 
 
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
                      std::vector<LidarPoint> &lidarPointsCurr, double frameRate, double &TTC)
 {
+    cout << "------------------- Task-2 <start> ----------------------------" << endl;
     // time between two measurements in seconds
     double deltaTime = 1.0 / frameRate;
 
@@ -330,6 +343,7 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
             TTC = 100.0;
         }
     }
+    cout << "------------------- Task-2 <end> ----------------------------" << endl;
 }
 
 
