@@ -8,6 +8,9 @@
 #include "camFusion.hpp"
 #include "dataStructures.h"
 
+#include <iomanip>
+#include "MyUtility.h"
+
 using namespace std;
 
 
@@ -82,7 +85,8 @@ void clusterLidarWithROI(std::vector<BoundingBox> &boundingBoxes, std::vector<Li
 * However, you can make this function work for other sizes too.
 * For instance, to use a 1000x1000 size, adjusting the text positions by dividing them by 2.
 */
-void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, cv::Size imageSize, bool bWait)
+void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, cv::Size imageSize,
+                   int imageID, std::string folderPathResultTop)
 {
     // create topview image
     cv::Mat topviewImg(imageSize, CV_8UC3, cv::Scalar(255, 255, 255));
@@ -145,10 +149,10 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
     cv::resize(topviewImg, topviewImg, cv::Size(), 0.3,0.3);
     cv::imshow(windowName, topviewImg);
 
-    if(bWait)
-    {
-        cv::waitKey(0); // wait for key to be pressed
-    }
+    ostringstream imageNumber;
+    imageNumber << setfill('0') << setw(2) << imageID;
+    string filePathOut = folderPathResultTop + "/" + "Objects_3D_" + imageNumber.str() + ".png";
+    cv::imwrite(filePathOut, topviewImg);
 }
 
 
@@ -159,7 +163,7 @@ void clusterKptMatchesWithROI(BoundingBox &bBoxCurr, std::vector<cv::KeyPoint> &
     //----------------------------------------------------//
     // Calculate the average distance
     std::vector<double> eucliDists;
-    double eucliDistAve = 0;
+
     for(auto itMatchPair = kptMatches.begin(); itMatchPair != kptMatches.end(); ++itMatchPair)
     {
         // calc distance
@@ -168,25 +172,14 @@ void clusterKptMatchesWithROI(BoundingBox &bBoxCurr, std::vector<cv::KeyPoint> &
         double distance = cv::norm(pointPrev - pointCurr);
 
         // store date
-        eucliDistAve += distance;
         eucliDists.push_back(distance);
     }
-    int numDist = eucliDists.size();
-    eucliDistAve /= numDist;
-
-    std::sort(eucliDists.begin(), eucliDists.end()); // ascending sort
-    cout << "eucliDists Min/ Ave /Max = " << eucliDists[0] << " / " << eucliDistAve << " / " << eucliDists[numDist-1] << endl;
 
     //----------------------------------------------------//
-    // Calculate Variance(=sigma)
+    // Calculate Average and Variance(=sigma)
+    double eucliDistAve = 0.0;
     double sigma = 0.0;
-    for(int i=0; i<numDist; ++i)
-    {
-        sigma += pow((eucliDists[i] - eucliDistAve),2);
-    }
-    sigma = pow( (sigma/numDist), 0.5);
-
-    cout << "sigmaDistance = " << sigma << endl;
+    CalcAverageSigma(eucliDists, eucliDistAve, sigma);
 
     //----------------------------------------------------//
     // Update
@@ -217,8 +210,18 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
                       std::vector<cv::DMatch> kptMatches, double frameRate, double &TTC, cv::Mat *visImg)
 {
     cout << "------------------- Task-4 <start> ----------------------------" << endl;
+
+    // Error Check
+    if( (kptsPrev.size()==0) || (kptsCurr.size()==0) || kptMatches.size()==0)
+    {
+        cout << "Task-4 : There is no matching";
+        TTC = -99.0;
+        return;
+    }
+
     // compute distance ratios between all matched keypoints
     vector<double> distRatios; // stores the distance ratios for all keypoints between curr. and prev. frame
+
     for (auto it1 = kptMatches.begin(); it1 != kptMatches.end() - 1; ++it1)
     { // outer keypoint loop : (start) to (end-1)
         // get current keypoint and its matched partner in the prev. frame
@@ -249,21 +252,16 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
     // only continue if list of distance ratios is not empty
     if (distRatios.size() == 0)
     {
-        TTC = NAN;
+        TTC = -99.0;
         return;
     }
 
     //-----------------------------------------------------------------------------
     // TODO: STUDENT TASK (replacement for meanDistRatio)
-    std::sort(distRatios.begin(), distRatios.end());
-    double dT       = 1 / frameRate;
-    int  dataSize   = distRatios.size();
-    int  middleId   = floor(dataSize / 2.0);
-    bool isEvenSize = (dataSize % 2 == 0) ? true : false;
-    double medianDistRatio = isEvenSize ? 0.5*(distRatios[middleId-1]+distRatios[middleId]) : distRatios[middleId];
-
-    TTC = -dT / (1 - medianDistRatio);
-    std::cout << "medianDistRatio = " << medianDistRatio << " / Camera TTC = " << TTC << std::endl;
+    double medianDistRatio = GetMedian(distRatios);
+    double dT = 1 / frameRate;
+    TTC       = -dT / (1 - medianDistRatio);
+    //std::cout << "medianDistRatio = " << medianDistRatio << " / Camera TTC = " << TTC << std::endl;
     cout << "------------------- Task-4 <end> ----------------------------" << endl;
 }
 
@@ -347,8 +345,7 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
 }
 
 
-void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame)
-{
+void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame) {
     // Get num of bounding boxes
     int numPrevBBoxes = prevFrame.boundingBoxes.size();
     int numCurrBBoxes = currFrame.boundingBoxes.size();
@@ -356,8 +353,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
 
     cout << "------------------- Task-1 <start> ----------------------------" << endl;
     // Loop-1 for all matching pairs
-    for (auto itMatch = matches.begin(); itMatch != matches.end(); ++itMatch)
-    {
+    for (auto itMatch = matches.begin(); itMatch != matches.end(); ++itMatch) {
         // Get keypoints
         int prevKeyID = itMatch->queryIdx;
         int currKeyID = itMatch->trainIdx;
@@ -365,20 +361,16 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
         auto currKeyPoint = currFrame.keypoints[currKeyID].pt;
 
         // Loop for all current bounding boxes
-        for(int currBBoxID = 0; currBBoxID < numCurrBBoxes; ++currBBoxID)
-        {
+        for (int currBBoxID = 0; currBBoxID < numCurrBBoxes; ++currBBoxID) {
             // get a bounding box which contain keypoint
             BoundingBox currBBox = currFrame.boundingBoxes[currBBoxID];
 
-            if(currBBox.roi.contains(currKeyPoint))
-            {
-                for(int prevBBoxID = 0; prevBBoxID < numPrevBBoxes; ++prevBBoxID)
-                {
+            if (currBBox.roi.contains(currKeyPoint)) {
+                for (int prevBBoxID = 0; prevBBoxID < numPrevBBoxes; ++prevBBoxID) {
                     // get a bounding box which contain keypoint
                     BoundingBox prevBBox = prevFrame.boundingBoxes[prevBBoxID];
 
-                    if(prevBBox.roi.contains(prevKeyPoint))
-                    {
+                    if (prevBBox.roi.contains(prevKeyPoint)) {
                         // Update Counter
                         matchCountTable.at<int>(prevBBoxID, currBBoxID) += 1;
                     }
@@ -388,14 +380,15 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
     }// end : Loop-1 for all matching pairs
 
     // View Matching Table
-    cout << "Mathcing Table : Row = Previous BBox ID / Col = Current BBox ID" << endl;
-    for(int prevBBoxID = 0; prevBBoxID < numPrevBBoxes; ++prevBBoxID)
+    if (DEBUG_MODE)
     {
-        for(int currBBoxID = 0; currBBoxID < numCurrBBoxes; ++currBBoxID)
-        {
-            cout << matchCountTable.at<int>(prevBBoxID, currBBoxID) << " , ";
+        cout << "Mathcing Table : Row = Previous BBox ID / Col = Current BBox ID" << endl;
+        for (int prevBBoxID = 0; prevBBoxID < numPrevBBoxes; ++prevBBoxID) {
+            for (int currBBoxID = 0; currBBoxID < numCurrBBoxes; ++currBBoxID) {
+                cout << matchCountTable.at<int>(prevBBoxID, currBBoxID) << " , ";
+            }
+            cout << endl;
         }
-        cout << endl;
     }
 
     // Create Map
@@ -424,11 +417,13 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
     }
 
     // View Map
-    cout << "####### Map {Prev , Curr} ##########" << endl;
-    for(auto it = bbBestMatches.begin(); it != bbBestMatches.end(); ++it)
+    if(DEBUG_MODE)
     {
-        cout << it->first << ", " << it->second << endl;
+        cout << "####### Map {Prev , Curr} ##########" << endl;
+        for(auto it = bbBestMatches.begin(); it != bbBestMatches.end(); ++it)
+        {
+            cout << it->first << ", " << it->second << endl;
+        }
     }
-
     cout << "------------------- Task-1 <end> ----------------------------" << endl;
 }

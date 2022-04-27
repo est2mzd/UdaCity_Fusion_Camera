@@ -27,28 +27,4 @@ void descKeypoints(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, cv::Mat &
 void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource, std::vector<cv::KeyPoint> &kPtsRef, cv::Mat &descSource, cv::Mat &descRef,
                       std::vector<cv::DMatch> &matches, std::string descriptorType, std::string matcherType, std::string selectorType);
 
-void CvTimeCount(double& t, bool FlagStart);
-
-class ReportData
-{
-public:
-    int numImage;
-    int numKeypoints;
-    int numMatchedKeypoints;
-    double cpuTimeDetect;
-    double cpuTimeDescript;
-    std::string nameDetector;
-    std::string nameDescriptor;
-    std::string exportDirectory;
-    std::string fileNameLog;
-    ReportData();
-    void exportReport(bool bAppendToFile);
-
-private:
-    std::string filePathLog;
-    void CreateFileNameLog();
-    void CreateExportDir();
-    void CalcAverage();
-};
-
 #endif /* matching2D_hpp */
