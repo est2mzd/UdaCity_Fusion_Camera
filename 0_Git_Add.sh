@@ -12,3 +12,6 @@ git add */results/*.txt
 git add */results/*.gif
 git add */images/keypoints.png
 
+git add ./Project_3D_Object_Tracking/images/
+
+
