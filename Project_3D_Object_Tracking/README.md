@@ -1,3 +1,15 @@
+<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+<script type="text/x-mathjax-config">
+ MathJax.Hub.Config({
+ tex2jax: {
+ inlineMath: [['$', '$'] ],
+ displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+ }
+ });
+</script>
+
+
 # SFND 3D Object Tracking
 
 Welcome to the final project of the camera course. By completing all the lessons, you now have a solid understanding of keypoint detectors, descriptors, and methods to match them between successive images. Also, you know how to detect objects in an image using the YOLO deep-learning framework. And finally, you know how to associate regions in a camera image with Lidar points in 3D space. Let's take a look at our program schematic to see what we already have accomplished and what's still missing.
@@ -31,3 +43,54 @@ In this final project, you will implement the missing parts in the schematic. To
 2. Make a build directory in the top level project directory: `mkdir build && cd build`
 3. Compile: `cmake .. && make`
 4. Run it: `./3D_object_tracking`.
+
+# FP1. to FP.4 (my solutions)
+* I show the results of Object Tracking.
+  <img src="results/Fig_1_Object_Classification/result.gif">
+  <img src="results/Fig_2_Object_3D/result.gif">
+
+* I show my programs structure.
+
+* main()
+<img src="results/Fig_0_Report/main().png">
+
+* parameter_study() : First half
+<img src="results/Fig_0_Report/parameter_study()_First_Half.png">
+
+* parameter_study() : Second half
+<img src="results/Fig_0_Report/parameter_study()_Second_Half.png">
+
+# FP.5 Performance Evaluation 1(my solution)
+* In "MyUtility.h", set "SIMULATION_TYPE" to "1" to get a result csv file.
+* I show the minimum distance(X) of the nearest vehicle which is used to calculate TTC.
+  * I show 2 types distance.
+    1. distance which are calculated by Lidar-Top-View Points.
+    2. distance which are calculated by Bounding Boxes Info.
+    <img src="results/Fig_0_Report/Final_Project_1.PNG">
+* I show the TTC equation of the Constant Vecocity Model.
+  * TTC = Relative_Distance / Relative_Velocity
+    * Relative_Distance = Calculated_by_Lidar_Points 
+    * Relative_Velocity = Relative_Distance_Change / Delta_Time
+* For Image_ID 28, Relative_Distance_Change of TopView is not continuous. <BR> TTC will not be continuous.
+* After Image_ID 48, Relative_Distance_Change is too small. This will lead to unstable TTC calculation.
+
+
+* I show the TTC which are calculated by Lidar Bounding Boxes Info.
+  * For Image_ID 28, TTC changed suddenly.
+  * After Image_ID 48, TTC become unstable.(from Image_ID 33 to 47, Relative_Distance_Change is gradually getting smaller)
+  * In oder to compare results properly for FP.6, I use only Image_ID from 0 to 33.
+  <img src="results/Fig_0_Report/Final_Project_2.PNG">
+
+# FP.6 Performance Evaluation 2(my solution)
+* In "MyUtility.h", set "SIMULATION_TYPE" to "2" to get a result csv file.
+* I give an index to each simulation type like below.
+  * For example, if I use ORB Detector and SURF Descriptor, the id is becomes 21 (20+1).
+  <img src="results/Fig_0_Report/Final_Project_3.PNG">
+* I show the TTC of Camera.
+  * The orange line : (TTC Difference) = (TTC Average of Camera) - (TTC Average of Lidar).
+  * The blue line : The variance of TTC of Camera.
+  * If I suppose the results of Lidar are correct, the smaller the difference, the better the results of Camera are.
+  * About Detectors, AKAZE(ID=40s) and FAST(ID=60s) is better.
+  * About Descriptors, FREAK(ID=6) always leads to better result.
+* So, I recommend that the AKAZE Detector and the FREAK Descriptor, because I want stable results.  
+  <img src="results/Fig_0_Report/Final_Project_4.PNG">

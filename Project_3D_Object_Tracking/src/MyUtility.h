@@ -5,6 +5,10 @@
 #define CAMERA_FUSION_MYUTILITY_H
 
 #define DEBUG_MODE 0
+#define VIEW_IMAGE_MODE 0
+#define FIG_SAVE_MODE 1
+#define TTC_OUTLIER 10000
+#define SIMULATION_TYPE 1 // 1=FP.5 , 2=FP.6
 
 #include <vector>
 #include <stdio.h>
@@ -23,7 +27,14 @@ T GetMedian(std::vector<T>& inputData)
     int  dataSize   = inputData.size();
     int  middleId   = floor(dataSize / 2.0);
     bool isEvenSize = (dataSize % 2 == 0) ? true : false;
-    return isEvenSize ? 0.5*(inputData[middleId - 1] + inputData[middleId]) : inputData[middleId];
+    double median   = (isEvenSize) ? 0.5*(inputData[middleId - 1] + inputData[middleId]) : inputData[middleId];
+
+    if (inputData.size()==0)
+    {
+        median = 1.0;
+    }
+
+    return median;
 }
 
 ////------------------------------------------------------------------------------------------------------------------
@@ -70,30 +81,29 @@ void GetVectorMinMax(std::vector<T>& inputData, T& min, T& max)
 class ReportData
 {
 public:
-    int numImage;
-    int numKeypoints;
-    int numMatchedKeypoints;
-    //
-    double cpuTimeDetect;
-    double cpuTimeDescript;
-    double cpuTimeCalcTTCCamera;
-    double cpuTimeCalcTTCLidar;
-    //
-    double TTCLidar;
-    double TTCCamera;
+    std::vector<double> Lidar_TopView_XMin;
+    std::vector<double> Lidar_BBox_XMin;
+    std::vector<double> Lidar_BBox_DeltaV;
+    std::vector<double> Lidar_TTC;
+    std::vector<double> Camera_TTC;
+    std::vector<double> Diff_Percent_TTC;
     //
     std::string nameDetector;
     std::string nameDescriptor;
     std::string exportDirectory;
-    std::string fileNameLog;
+    std::string fileNameLog_Type01;
+    std::string fileNameLog_Type02;
+    //
+    double FrameRate;
     ReportData();
-    void exportReport(bool bAppendToFile);
+    void exportReport_Type01(bool bAppendToFile);
+    void exportReport_Type02(bool bAppendToFile);
 
 private:
-    std::string filePathLog;
+    std::string filePathLog_Type01;
+    std::string filePathLog_Type02;
     void CreateFileNameLog();
     void CreateExportDir();
-    void CalcAverage();
 };
 
 ////------------------------------------------------------------------------------------------------------------------

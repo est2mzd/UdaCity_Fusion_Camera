@@ -4,7 +4,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include "lidarData.hpp"
-
+#include "MyUtility.h"
 
 using namespace std;
 
@@ -84,7 +84,7 @@ void showLidarTopview(std::vector<LidarPoint> &lidarPoints, cv::Size worldSize, 
     cv::namedWindow(windowName, 2);
     cv::resize(topviewImg, topviewImg, cv::Size(), 0.3,0.3);
     cv::imshow(windowName, topviewImg);
-    if(bWait)
+    if(VIEW_IMAGE_MODE)
     {
         cv::waitKey(0); // wait for key to be pressed
     }
@@ -142,7 +142,10 @@ void showLidarImgOverlay(cv::Mat &img, std::vector<LidarPoint> &lidarPoints, cv:
         cv::namedWindow( windowName, 3 );
         cv::resize(visImg, visImg, cv::Size(), 0.3,0.3);
         cv::imshow( windowName, visImg );
-        cv::waitKey(0); // wait for key to be pressed
+        if(VIEW_IMAGE_MODE)
+        {
+            cv::waitKey(0); // wait for key to be pressed
+        }
     }
     else
     {

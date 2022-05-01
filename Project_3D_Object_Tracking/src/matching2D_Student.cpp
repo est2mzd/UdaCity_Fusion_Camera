@@ -3,7 +3,7 @@
 #include "matching2D.hpp"
 
 #include <sys/stat.h>
-
+#include "MyUtility.h"
 
 using namespace std;
 
@@ -158,7 +158,10 @@ void detKeypointsShiTomasi(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool b
         string windowName = "Shi-Tomasi Corner Detector Results";
         cv::namedWindow(windowName, 6);
         imshow(windowName, visImage);
-        //cv::waitKey(0);
+        if(VIEW_IMAGE_MODE)
+        {
+            cv::waitKey(0);
+        }
     }
 }
 
@@ -169,7 +172,10 @@ void visualizeResults(cv::Mat& img, std::string window_name, vector<cv::KeyPoint
     string windowName = window_name;
     cv::namedWindow(windowName, 6);
     imshow(windowName, visImage);
-    //cv::waitKey(0);
+    if(VIEW_IMAGE_MODE)
+    {
+        cv::waitKey(0);
+    }
 }
 
 // Detect keypoints in image
