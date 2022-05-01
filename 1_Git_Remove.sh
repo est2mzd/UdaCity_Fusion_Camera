@@ -16,4 +16,4 @@ git rm -rf --cached ./L06_08_YOLOv3_Workflow/detect_objects/cmake-build-debug
 git rm -rf --cached */cmake-build-debug/
 
 git rm -rf --cached ./Project_3D_Object_Tracking/build/
-git rm -rf --cached ./Project_3D_Object_Tracking/dat/
+git rm -rf --cached ./Project_3D_Object_Tracking_Submit_1/
