@@ -93,7 +93,7 @@ int parameter_study(string detectorType, string descriptorType, string folderPat
     int imgEndIndex   = 77;//18;   // last file index to load
 #endif
 #if SIMULATION_TYPE == 2
-    int imgEndIndex   = 33;//18;   // last file index to load
+    int imgEndIndex   = 48;//18;   // last file index to load
 #endif
     int imgStepWidth  = 1;
     int imgFillWidth  = 4; // no. of digits which make up the file index (e.g. img-0001.png)

@@ -44,7 +44,32 @@ In this final project, you will implement the missing parts in the schematic. To
 3. Compile: `cmake .. && make`
 4. Run it: `./3D_object_tracking`.
 
-# FP1. to FP.4 (my solutions)
+# FP.0 (my solutions)
+### TASK FP.1 : match list of 3D objects (vector<BoundingBox>) between current and previous frame
+* Using "matches (vector<cv::DMatch>)", I create a map.
+* First I create a 2D Table like a below left figure. The table value is matched key-points number.
+* Second I select max number matching and create a map "bbMatches".
+<img src="results/Fig_0_Report/FP_1_1.PNG">
+
+### TASK FP.2 -> compute time-to-collision based on Lidar data
+* Using all key-points of current and previous frame, calculate median of X.
+* I calculate TTC using equation below.
+  * Relative_Distance = abs(Median_X_Prev - Median_X_Current);
+  * Relative_Velocity = Relative_Distance / Delta_Time
+  * TTC = Relative_Distance / Relative_Velocity
+
+### TASK FP.3 -> assign enclosed keypoint matches to bounding box
+* Step-1. calculate distance between previous and current key-points for all matches.
+* Step-2. calculate average and distance of all distance.
+* Step-3. if abs(each_distance - average) is smaller than variance, I save that key-point in "bBoxCurr". 
+
+### TASK FP.4 -> compute time-to-collision based on camera
+* From an image, we can not calculate distance directly. So, I calculate distance ratio "h1/h0" in the figure below.
+  <img src="results/Fig_0_Report/FP_4_1.PNG">
+* Using the equation (4), I calculate "h1/h0" and TTC.
+  <img src="results/Fig_0_Report/FP_4_2.PNG">
+
+# FP.1 to FP.4 (my solutions)
 * I show the results of Object Tracking.
   <img src="results/Fig_1_Object_Classification/result.gif">
   <img src="results/Fig_2_Object_3D/result.gif">
@@ -71,14 +96,12 @@ In this final project, you will implement the missing parts in the schematic. To
   * TTC = Relative_Distance / Relative_Velocity
     * Relative_Distance = Calculated_by_Lidar_Points 
     * Relative_Velocity = Relative_Distance_Change / Delta_Time
-* For Image_ID 28, Relative_Distance_Change of TopView is not continuous. <BR> TTC will not be continuous.
 * After Image_ID 48, Relative_Distance_Change is too small. This will lead to unstable TTC calculation.
 
 
 * I show the TTC which are calculated by Lidar Bounding Boxes Info.
-  * For Image_ID 28, TTC changed suddenly.
-  * After Image_ID 48, TTC become unstable.(from Image_ID 33 to 47, Relative_Distance_Change is gradually getting smaller)
-  * In oder to compare results properly for FP.6, I use only Image_ID from 0 to 33.
+  * After Image_ID 48, TTC become unstable.
+  * In oder to compare results properly for FP.6, I use only Image_ID from 0 to 48.
   <img src="results/Fig_0_Report/Final_Project_2.PNG">
 
 # FP.6 Performance Evaluation 2(my solution)

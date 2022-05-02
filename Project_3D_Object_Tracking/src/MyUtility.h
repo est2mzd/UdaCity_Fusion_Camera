@@ -6,9 +6,9 @@
 
 #define DEBUG_MODE 0
 #define VIEW_IMAGE_MODE 0
-#define FIG_SAVE_MODE 1
+#define FIG_SAVE_MODE 0
 #define TTC_OUTLIER 10000
-#define SIMULATION_TYPE 1 // 1=FP.5 , 2=FP.6
+#define SIMULATION_TYPE 2 // 1=FP.5 , 2=FP.6
 
 #include <vector>
 #include <stdio.h>

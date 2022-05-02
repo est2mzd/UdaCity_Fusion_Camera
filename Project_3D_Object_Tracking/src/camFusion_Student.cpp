@@ -401,27 +401,27 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
     double averageXCurr = 0.0;
     int numXPrev = lidarPointsPrev.size();
     int numXCurr = lidarPointsCurr.size();
+    vector<double> PrevXs, CurrXs;
 
     for(auto itPrev = lidarPointsPrev.begin(); itPrev != lidarPointsPrev.end(); ++itPrev)
     {
-        averageXPrev += itPrev->x;
+        PrevXs.push_back(itPrev->x);
     }
     //
     for(auto itCurr = lidarPointsCurr.begin(); itCurr != lidarPointsCurr.end(); ++itCurr)
     {
-        averageXCurr += itCurr->x;
+        CurrXs.push_back(itCurr->x);
     }
-
-    averageXPrev /= (double)numXPrev;
-    averageXCurr /= (double)numXCurr;
+    double PrevXMedian = GetMedian(PrevXs);
+    double CurrXMedian = GetMedian(CurrXs);
 
     // Compute TTC from both measurements
-    double deltaX = abs(averageXPrev - averageXCurr);
+    double deltaX = abs(PrevXMedian - CurrXMedian);
     double deltaV = deltaX / deltaTime;
 
     if (deltaX > 0.001)
     {
-        TTC = averageXCurr / deltaV;
+        TTC = CurrXMedian / deltaV;
     }
     else
     {
@@ -438,9 +438,9 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
     }
      */
 
-    xMinLidar   = averageXCurr;
+    xMinLidar   = CurrXMedian;
     deltaVLidar = deltaV;
-    cout << "AverageX = " << averageXCurr << " , deltaV = " << deltaV <<  endl;
+    cout << "AverageX = " << CurrXMedian << " , deltaV = " << deltaV <<  endl;
     cout << "  TTC of Lidar = " << TTC << endl;
     cout << "------------------- Task-2 <end> ----------------------------" << endl;
 }
